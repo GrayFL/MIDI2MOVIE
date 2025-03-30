@@ -3,7 +3,7 @@ from re import findall, split
 from collections import deque
 import mido
 import numpy as np
-import moviepy.editor as me
+import moviepy as me
 import matplotlib.pyplot as plt
 
 plt.rcParams['font.family'] = 'Sarasa Mono SC'
@@ -221,10 +221,9 @@ class Script():
                     cur_div = None  # 离开前言div
                     pop_stack(ASL, stack)  # 追加前言的内容
                     continue
-            elif (
-                s.startswith('//')  # 通用注释行
-                or (cur_div == '---' and s.startswith('#'))  # 前言注释行
-                ):
+            elif (s.startswith('//')  # 通用注释行
+                    or (cur_div == '---' and s.startswith('#'))  # 前言注释行
+                  ):
                 continue
             elif s.startswith('# '):  # 标题行
                 cur_div = '#'  # 进入正文段落div
@@ -388,7 +387,7 @@ class Movie():
             if k in self.__dict__:
                 self.__dict__[k] = v
         if self.audio is None:
-            self.movie_length = 4 * 60 + self.BeginTime
+            self.movie_length = 4*60 + self.BeginTime
         else:
             self.movie_length = self.audio.duration + self.BeginTime
 
@@ -400,10 +399,10 @@ class Movie():
         vc_bg = me.ImageClip(
             np.ones((self.h, self.w, 3)) * MidiVisualizer.COLOR_BG * 255
             )
-        vc_bg: me.ImageClip = vc_bg.set_duration(self.movie_length)
+        vc_bg: me.ImageClip = vc_bg.with_duration(self.movie_length)
         if self.audio is not None:
-            self.audio = self.audio.set_start(self.MV.BeginTime)
-            vc_bg = vc_bg.set_audio(self.audio)
+            self.audio = self.audio.with_start(self.MV.BeginTime)
+            vc_bg = vc_bg.with_audio(self.audio)
         self.arr_clip.append(vc_bg)
 
     def make_section_Title(self):
@@ -414,15 +413,16 @@ class Movie():
             # 跳过开头
             return
         tc_title = me.TextClip(
-            self.Title,
+            text=self.Title,
             color='#EAEAEA',
             font=self.FontPath,
-            fontsize=96,
-            align='center',
+            font_size=96,
+            text_align='center',
+            margin=(0,9.6),
             )
-        tc_title: me.TextClip = tc_title.set_position(
+        tc_title: me.TextClip = tc_title.with_position(
             ('center', 0.3), relative=True)
-        tc_title: me.TextClip = tc_title.set_duration(
+        tc_title: me.TextClip = tc_title.with_duration(
             self.MV.spanBar2True(1)+self.BeginTime)
         self.arr_clip.append(tc_title)
 
@@ -430,29 +430,31 @@ class Movie():
             # 跳过格言
             return
         tc_saying = me.TextClip(
-            self.Saying,
+            text=self.Saying,
             color='#C1C1C1',
             font=self.FontPath,
-            fontsize=48,
-            align='center',
+            font_size=48,
+            text_align='center',
+            margin=(0,4.8),
             )
-        tc_saying: me.TextClip = tc_saying.set_position(
+        tc_saying: me.TextClip = tc_saying.with_position(
             ('center', 0.67),relative=True)
-        tc_saying: me.TextClip = tc_saying.set_duration(
+        tc_saying: me.TextClip = tc_saying.with_duration(
             self.MV.spanBar2True(
                 (self.bpB-self.CountDown)/self.bpB)+self.BeginTime)
         self.arr_clip.append(tc_saying)
 
         tc_name = me.TextClip(
-            self.Name,
+            text=self.Name,
             color='#C1C1C1',
             font=self.FontPath,
-            fontsize=48,
-            align='center',
+            font_size=48,
+            text_align='center',
+            margin=(0,4.8),
             )
-        tc_name: me.TextClip = tc_name.set_position(
+        tc_name: me.TextClip = tc_name.with_position(
             (0.65, 0.8),relative=True)
-        tc_name: me.TextClip = tc_name.set_duration(
+        tc_name: me.TextClip = tc_name.with_duration(
             self.MV.spanBar2True(
                 (self.bpB-self.CountDown)/self.bpB)+self.BeginTime)
         self.arr_clip.append(tc_name)
@@ -462,31 +464,33 @@ class Movie():
         设置倒计时
         '''
         tc_circle = me.TextClip(
-            '●',
+            text='●',
             color = '#222222',
             font = self.FontPath,
-            fontsize = 400,
-            align='center',
-            ).set_position(
-                ('center',0.4),relative=True
-            ).set_duration(
+            font_size = 400,
+            text_align='center',
+            margin=(400*0.1,400*0.1)
+            ).with_position(
+                ('center',0.464),relative=True
+            ).with_duration(
                 self.MV.spanBar2True(self.CountDown/self.bpB)
-            ).set_start(
+            ).with_start(
                 self.MV.timeBar2Mov(
                     (self.bpB - self.CountDown) / self.bpB + self.InitBar))
         self.arr_clip.append(tc_circle)
         for i in range(self.CountDown,0,-1):
             tc_count_down = me.TextClip(
-                f'{i}',
+                text=f'{i}',
                 color = '#CCCCCC',
                 font = self.FontPath,
-                fontsize = 106,
-                align='center',
-                ).set_position(
-                    ('center',0.566),relative=True
-                ).set_duration(
+                font_size = 106,
+                text_align='center',
+                margin=(106*0.1,106*0.1)
+                ).with_position(
+                    ('center',0.582),relative=True
+                ).with_duration(
                     self.MV.spanBar2True(1/self.bpB)
-                ).set_start(
+                ).with_start(
                     self.MV.timeBar2Mov(
                         (self.bpB-i)/self.bpB+self.InitBar))
             self.arr_clip.append(tc_count_down)
@@ -496,12 +500,12 @@ class Movie():
             print(f'processing MidiPattern {midi_pattern.range}\n{midi_pattern.channels}\n')
             self.MV.put_midi_data(midi_pattern)
             vc_mid = self.MV.get_video_clip_sytle_A(midi_pattern)
-            vc_mid = vc_mid.set_position(
+            vc_mid = vc_mid.with_position(
                 (0.095,0.47),relative=True
-                ).set_duration(
+                ).with_duration(
                     self.MV.spanBar2True(
                         midi_pattern.disp_range[1]-midi_pattern.disp_range[0])
-                ).set_start(self.MV.timeBar2Mov(midi_pattern.disp_range[0]))
+                ).with_start(self.MV.timeBar2Mov(midi_pattern.disp_range[0]))
             self.arr_clip.append(vc_mid)
 
     def make_section_Midi_Style_B(self, midi_patterns:list[MidiPattern]):
@@ -512,39 +516,42 @@ class Movie():
             self.MV.put_midi_data(midi_pattern)
             frame = self.MV.get_fig_static(midi_pattern)
             vc_mid = me.ImageClip(frame
-                ).set_position(
+                ).with_position(
                     (0.095,0.47),relative=True
-                ).set_duration(
+                ).with_duration(
                     self.MV.spanBar2True(
                         midi_pattern.disp_range[1]-midi_pattern.disp_range[0])
-                ).set_start(self.MV.timeBar2Mov(midi_pattern.disp_range[0]))
+                ).with_start(self.MV.timeBar2Mov(midi_pattern.disp_range[0]))
             self.arr_clip.append(vc_mid)
 
             vc_timeline = self.MV.get_video_clip_sytle_B(
                 midi_pattern
-                ).set_position(
+                ).with_position(
                     (0.095,0.47),relative=True
-                ).set_duration(
+                ).with_duration(
                     self.MV.spanBar2True(
                         midi_pattern.disp_range[1]-midi_pattern.disp_range[0])
-                ).set_start(self.MV.timeBar2Mov(midi_pattern.disp_range[0]))
+                ).with_start(self.MV.timeBar2Mov(midi_pattern.disp_range[0]))
             self.arr_clip.append(vc_mid)
             self.arr_clip.append(vc_timeline)
 
     def make_section_Para(self, paragraphs:list[Paragraph]):
         for paragraph in paragraphs:
             tc_anno = me.TextClip(
-                paragraph.text,
+                text=paragraph.text,
                 color = '#EAEAEA',
                 font = self.FontPath,
-                fontsize = 64,
-                align='West',
-                ).set_position(
+                font_size = 64,
+                # size = (1664, 940),
+                text_align='left',
+                interline=64*0.3,
+                # margin=(0,64*0.18),
+                ).with_position(
                     (0.115,0.13),relative=True
-                ).set_duration(
+                ).with_duration(
                     self.MV.spanBar2True(
                         paragraph.range[1]-paragraph.range[0])
-                ).set_start(self.MV.timeBar2Mov(paragraph.range[0]))
+                ).with_start(self.MV.timeBar2Mov(paragraph.range[0]))
             self.arr_clip.append(tc_anno)
             # print(f'processing Paragraph {paragraph.range}\n{paragraph.text}\n\n')
             print(f'processing Paragraph {paragraph}\n')
@@ -898,7 +905,8 @@ class MidiVisualizer():
         给一个midipattern添加其指定范围的midi数据
         '''
         midipattern.mtracks = self.sub(
-            midipattern.range, midipattern.channels,
+            midipattern.range,
+            midipattern.channels,
             midipattern.pitch_clip_range
             )
         key_min, key_max = None, None  # C4
@@ -926,7 +934,8 @@ class MidiVisualizer():
         # self.ax_fg.get_legend().remove()
         # self.ax_fg.legend_ = None
         ylim = MidiVisualizer.get_disp_pitch_range(
-            midipattern.pitch_range, self.expand_range,
+            midipattern.pitch_range,
+            self.expand_range,
             self.min_pitch_range
             )
         xlim = midipattern.range
@@ -949,13 +958,11 @@ class MidiVisualizer():
 
         # 小节线更新
         self.ax_fg.set_xticks(
-            np.arange(np.floor(xlim[0]),
-                        np.ceil(xlim[1]) + 1)
+            np.arange(np.floor(xlim[0]), np.ceil(xlim[1]) + 1)
             )
         self.ax_fg.set_xticks(
             np.arange(
-                np.floor(xlim[0]),
-                np.ceil(xlim[1]) + 1, 1 / self.bpB
+                np.floor(xlim[0]), np.ceil(xlim[1]) + 1, 1 / self.bpB
                 ),
             minor=True
             )
@@ -983,8 +990,11 @@ class MidiVisualizer():
         return frame
 
     def make_fig(
-            self, midipattern: MidiPattern, fig: plt.Figure,
-            ax_bg: plt.Axes, ax_fg: plt.Axes
+            self,
+            midipattern: MidiPattern,
+            fig: plt.Figure,
+            ax_bg: plt.Axes,
+            ax_fg: plt.Axes
         ):
         '''
         给输入的midipattern渲染一张完整的静态背景
@@ -999,7 +1009,8 @@ class MidiVisualizer():
         # ax_fg.get_legend().remove()
         ax_fg.legend_ = None
         ylim = MidiVisualizer.get_disp_pitch_range(
-            midipattern.pitch_range, self.expand_range,
+            midipattern.pitch_range,
+            self.expand_range,
             self.min_pitch_range
             )
         xlim = midipattern.range
@@ -1022,13 +1033,11 @@ class MidiVisualizer():
 
         # 小节线更新
         ax_fg.set_xticks(
-            np.arange(np.floor(xlim[0]),
-                        np.ceil(xlim[1]) + 1)
+            np.arange(np.floor(xlim[0]), np.ceil(xlim[1]) + 1)
             )
         ax_fg.set_xticks(
             np.arange(
-                np.floor(xlim[0]),
-                np.ceil(xlim[1]) + 1, 1 / self.bpB
+                np.floor(xlim[0]), np.ceil(xlim[1]) + 1, 1 / self.bpB
                 ),
             minor=True
             )
@@ -1065,7 +1074,7 @@ class MidiVisualizer():
             )
 
         def makeFrame(t: float):
-            t_bar = (t / 60) * self.BpM + xlim[0]
+            t_bar = (t/60) * self.BpM + xlim[0]
             art_timeline.set_data([t_bar, t_bar], [0, 102])
             fig.canvas.draw()
             frame = np.array(fig.canvas.buffer_rgba())
@@ -1121,7 +1130,7 @@ class MidiVisualizer():
             )
 
         def makeFrame(t: float):
-            t_bar = (t / 60) * self.BpM + xlim[0]
+            t_bar = (t/60) * self.BpM + xlim[0]
             art_timeline.set_data([t_bar, t_bar], [0, 1])
             fig.canvas.draw()
             frame = np.array(fig.canvas.buffer_rgba())
